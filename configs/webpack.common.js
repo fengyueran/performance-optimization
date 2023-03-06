@@ -49,6 +49,9 @@ module.exports = {
         // collapseWhitespace: true, // 移除空格
         // removeComments: true, // 移除注释
       },
+      loading: {
+        html: null,
+      },
     }),
     new ESLintPlugin({
       fix: true, // 启用 ESLint 自动修复特性

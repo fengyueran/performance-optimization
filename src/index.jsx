@@ -4,3 +4,8 @@ import App from './app';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
+// setTimeout(() => {
+//     const root = ReactDOM.createRoot(document.getElementById('root'));
+//     root.render(<App />);
+//   }, 3000);

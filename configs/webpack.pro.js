@@ -12,6 +12,18 @@ const proConfig = {
 
   /* 插件 */
   plugins: [new CleanWebpackPlugin()],
+
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+      cacheGroups: {
+        react: {
+          name: 'react',
+          test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+        },
+      },
+    },
+  },
 };
 
 module.exports = merge(commonConfig, proConfig);

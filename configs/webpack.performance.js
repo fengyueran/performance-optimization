@@ -12,6 +12,17 @@ const loading = {
 };
 
 const performanceConfig = {
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+      cacheGroups: {
+        react: {
+          name: 'react',
+          test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+        },
+      },
+    },
+  },
   plugins: [
     // new PrerenderSPAPlugin({
     //   routes: ['/'],

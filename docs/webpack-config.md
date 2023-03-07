@@ -2,6 +2,92 @@
 
 webpack 中文文档链接:[webpack](https://webpack.docschina.org/configuration)
 
+#### hash 相关概念
+
+- chunk
+
+  正常情况下，以 entry 指定的文件为入口，将入口文件及其依赖打包成一个 bundle 文件(也可以认为是一个 chunk)，然而有些情况下，部分功能是在使用时才会用到，出于性能优化的需要，我们将按需加载的内容打包到独立的文件当中，这些文件就叫做 chunk。大概有三种方式产生 chunk: 1）entry 入口 不同的入口产生不同的 chunk(entry 传一个数组也产生一个 chunk)
+
+  ```js
+  module.exports = {
+    entry: {
+      index: './src/index.js',
+      search: './src/search.js',
+    },
+    output: {
+      path: path.join(__dirname, 'build'),
+      filename: '[name].js',
+    },
+  };
+  ```
+
+  两个入口生成两个 chunk。
+
+  2）异步加载模块
+
+  ```js
+  module.exports = {
+    entry: {
+      index: "./src/index.js"
+    },
+    output: {
+      path: path.join(__dirname, "build"),
+      filename: "[name].js"
+      chunkFilename: "[name].js"
+    }
+  }
+  const model = r => require.ensure([], () => r(require('./Math.js')), 'model')
+  ```
+
+  通过 require.ensure 异步加载模块生成 chunk。
+
+  3）代码分割(code spliting)
+
+  通过 splitChunks 来进行代码分割。
+
+  ```js
+  module.exports = {
+    entry: {
+      index: 'src/index.js',
+    },
+    output: {
+      path: path.join(__dirname, 'build'),
+      filename: '[name].js',
+      chunkFilename: '[name].js',
+    },
+    optimization: {
+      runtimeChunk: 'single',
+      splitChunks: {
+        cacheGroups: {
+          commons: {
+            minSize: 0,
+          },
+          vendor: {
+            test: /node_modules/,
+            name: 'vendor',
+          },
+        },
+      },
+    },
+  };
+  ```
+
+  runtimeChunk: "single"会为 runtime(webpack 用来加载和解析模块的代码)代码单独生成一个 chunk，common 和 vendor 会分别生成一个 chunk。
+
+- hash
+
+  由编译的所有文件决定的 hash 指纹，只要编译的项目文件有变化这个 hash 值就会有变化，所有的 chunk 文件使用相同的 hash 值。
+
+- chunkhash
+
+  由 chunk 文件块决定的 hash 指纹，不同的入口会生成不同的 chunk，对应着不同的 hash 值。通常，我们在生产环境中把一些公共库和程序入口文件分开，单独打包构建，如果不更改公共库，hash 值就不会改变，也就达到了缓存的目的。如果主项目采用 chunkhash，项目主入口文件 main.js 及其对应的依赖文件由于被打包在同一个模块，所以共用相同的 chunkhash，这就存在一个问题，只要 css 或 js 改变了，其对应的 chunkhash 就改变了，浏览器就会重新下载 css 和 js，没有达到缓存的目的。
+
+- contenthash
+
+  由文件内容决定的 hash 指纹，假如 css 改变了，js 的 contenthash 并不会改变，由此可以缓存 js，同样，当 js 改变时，css 的 contenthash 并不会改变，css 得以缓存。因此用 contenthash 能够更好的缓存。
+
+之所以需要 hash 是因为浏览器的缓存策略，通常一个 html 引用的 js 名称\(以及请求参数\)不变，浏览器就不会重新请求。相反地，如果我们的 js 改变了，如果还是之前的名字，就会导致浏览器一直使用缓存中的 js，如果有 hash，新的内容产生新的 hash 值，浏览器就会请求新的 js。
+
 #### [entry](https://webpack.docschina.org/configuration/entry-context/#entry)
 
 入口起点，告诉 webpack 应该使用哪个模块，来作为构建其内部依赖图的开始。默认值是 ./src/index.js，但也可以通过在 “webpack.config.js” 文件中的 entry 属性来配置，可以指定一个（或多个）不同的入口起点，例如
@@ -38,7 +124,7 @@ module.exports = {
   entry: './src/index.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'main.js',
+    filename: '[name].[contenthash:8].js',
   },
 };
 

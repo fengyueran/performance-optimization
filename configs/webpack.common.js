@@ -15,7 +15,7 @@ module.exports = {
   /* 出口文件 */
   output: {
     path: path.resolve(__dirname, PATHS.dist),
-    filename: '[name].[hash:6].js',
+    filename: '[name].[contenthash:8].js',
   },
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx'],

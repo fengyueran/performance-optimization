@@ -467,3 +467,26 @@ module.exports = {
   rules: {},
 };
 ```
+
+#### bundle 分析
+
+通过插件 webpack-bundle-analyzer 能够很方便的查看各个模块的大小。
+安装依赖:
+
+```
+$ yarn add webpack-bundle-analyzer --dev
+```
+
+webpack 配置:
+
+```js
+const BundleAnalyzerPlugin =
+  require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+module.exports = {
+  // ...
+  plugins: [new BundleAnalyzerPlugin()],
+  // ...
+};
+```
+
+使用该插件后 build 会自动打开浏览器 8888 窗口

@@ -10,7 +10,7 @@ const imageInlineSizeLimit = parseInt(
 
 module.exports = {
   /* 入口文件 */
-  entry: './src/index.jsx',
+  entry: './src/index.js',
 
   /* 出口文件 */
   output: {

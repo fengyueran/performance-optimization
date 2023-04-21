@@ -1,27 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
 
+type ComponentType<P = any> =
+  | React.ComponentClass<P>
+  | React.FunctionComponent<P>;
+
 interface ItemProps {
   index: number;
-  data: string;
-  setHeight: (index: number, height: number) => void;
+  children: ComponentType;
+  onHeighReceived: (index: number, height: number) => void;
 }
-const Item: React.FC<ItemProps> = ({ index, data, setHeight }) => {
+const ItemWrapper: React.FC<ItemProps> = (props) => {
+  const { index, onHeighReceived, children } = props;
   const itemRef = useRef<any>();
   useEffect(() => {
-    setHeight(index, itemRef.current.getBoundingClientRect().height);
-  }, [setHeight, index]);
+    onHeighReceived(index, itemRef.current.getBoundingClientRect().height);
+  }, [onHeighReceived, index]);
 
+  const Item = children;
   return (
-    <div
-      ref={itemRef}
-      style={{
-        backgroundColor: index % 2 === 0 ? '#eee3e3' : '#9bd09d',
-        width: '100%',
-        height: '100%',
-      }}
-    >
-      {data}
+    <div ref={itemRef}>
+      <Item index={index} />
     </div>
   );
 };
@@ -29,14 +28,17 @@ const Item: React.FC<ItemProps> = ({ index, data, setHeight }) => {
 interface Props {
   itemData: any[];
   containerHeight: number;
+  children: ComponentType;
 }
 
 export const VariableSizeList: React.FC<Props> = (props) => {
-  const { itemData, containerHeight } = props;
+  const { itemData, containerHeight, children } = props;
   const itemCount = itemData.length;
+
   const [scrollTop, setScrollTop] = useState(0); // 滚动高度
 
-  const heightsRef = useRef(new Array(100));
+  const heightsRef = useRef([0]);
+
   // 预估高度
   const estimatedItemHeight = 40;
 
@@ -44,46 +46,67 @@ export const VariableSizeList: React.FC<Props> = (props) => {
     return heightsRef.current[index] ?? estimatedItemHeight;
   };
 
-  const setHeight = (index: number, height: number) => {
-    if (heightsRef.current[index] !== height) {
-      heightsRef.current[index] = height;
-      // 让 VariableSizeList 组件更新高度
-      setOffsets(genOffsets());
+  const calcOffsets = () => {
+    const offsets = [];
+    offsets[0] = getHeight(0);
+    for (let i = 1; i < itemCount; i++) {
+      offsets[i] = getHeight(i) + offsets[i - 1];
     }
+    return offsets;
   };
 
-  const genOffsets = () => {
-    const a = [];
-    a[0] = getHeight(0);
-    for (let i = 1; i < itemCount; i++) {
-      a[i] = getHeight(i) + a[i - 1];
+  const onHeighReceived = (index: number, height: number) => {
+    if (heightsRef.current[index] !== height) {
+      heightsRef.current[index] = height;
+      setOffsets(calcOffsets());
     }
-    return a;
   };
 
   // 所有 items 的位置
   const [offsets, setOffsets] = useState(() => {
-    return genOffsets();
+    return calcOffsets();
   });
 
-  // 找 startIdx 和 endIdx
-  // 这里用了普通的查找，更好的方式是二分查找
-  let startIdx = offsets.findIndex((pos) => pos > scrollTop);
-  let endIdx = offsets.findIndex((pos) => pos > scrollTop + containerHeight);
-  if (endIdx === -1) endIdx = itemCount;
-
-  const items = [];
-  for (let i = startIdx; i <= endIdx; i++) {
-    items.push(
-      <div key={i}>
-        <Item index={i} setHeight={setHeight} data={itemData[i]} />
-      </div>
+  const getItemRange = (scrollTopValue: number) => {
+    //计算占满containerHeight需要渲染的 item 索引
+    let startIdx = offsets.findIndex((pos) => pos > scrollTopValue);
+    let endIdx = offsets.findIndex(
+      (pos) => pos > scrollTopValue + containerHeight
     );
-  }
+    if (endIdx === -1) endIdx = itemCount;
+    // 处理越界情况
+    startIdx = Math.max(startIdx, 0);
+    endIdx = Math.min(endIdx, itemCount - 1);
+    return [startIdx, endIdx];
+  };
 
-  const top = offsets[startIdx] - heightsRef.current[startIdx]; // 第一个渲染 item 到顶部距离
-
+  const [startIdx, endIdx] = getItemRange(scrollTop);
+  const top = offsets[startIdx] - getHeight(startIdx); // 第一个渲染 item 到顶部距离
   const contentHeight = offsets[offsets.length - 1];
+
+  const renderItems = () => {
+    const items = [];
+    for (let i = startIdx; i <= endIdx; i++) {
+      items.push(
+        <ItemWrapper key={i} index={i} onHeighReceived={onHeighReceived}>
+          {children}
+        </ItemWrapper>
+      );
+    }
+    return items;
+  };
+
+  const onScroll: React.UIEventHandler<HTMLDivElement> = (e) => {
+    const scrollTop = (e.target as HTMLElement).scrollTop;
+    const range = getItemRange(scrollTop);
+    if (startIdx !== range[0] || endIdx !== range[1]) {
+      // setState异步更新会导致白屏问题, 因此改为同步更新
+      // setScrollTop(scrollTop);
+      flushSync(() => {
+        setScrollTop(scrollTop);
+      });
+    }
+  };
 
   return (
     <div
@@ -92,18 +115,11 @@ export const VariableSizeList: React.FC<Props> = (props) => {
         overflow: 'auto',
         background: '#9BBAE7',
       }}
-      onScroll={(e) => {
-        // // 处理渲染异步导致的白屏现象
-        // // 改为同步更新，但可能会有性能问题，可以做 节流 + RAF 优化
-        flushSync(() => {
-          setScrollTop((e.target as HTMLElement).scrollTop);
-        });
-        // setScrollTop((e.target as HTMLElement).scrollTop);
-      }}
+      onScroll={onScroll}
     >
       <div style={{ height: contentHeight }}>
         <div style={{ height: top }}></div>
-        {items}
+        {renderItems()}
       </div>
     </div>
   );

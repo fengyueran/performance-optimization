@@ -8,7 +8,7 @@ const Item: React.FC<ItemProps> = ({ index }) => {
   return (
     <div
       style={{
-        backgroundColor: index % 2 === 0 ? '#718b90' : '#988781',
+        backgroundColor: index % 2 === 0 ? '#eee3e3' : '#9bd09d',
         width: '100%',
         height: '100%',
       }}
@@ -53,9 +53,9 @@ export const VirtualList: React.FC<Props> = (props) => {
         // // 处理渲染异步导致的白屏现象
         // // 改为同步更新，但可能会有性能问题，可以做 节流 + RAF 优化
         flushSync(() => {
-          setScrollTop((e.target as any).scrollTop);
+          setScrollTop((e.target as HTMLElement).scrollTop);
         });
-        // setScrollTop((e.target as any).scrollTop);
+        // setScrollTop((e.target as HTMLElement).scrollTop);
       }}
     >
       <div style={{ height: contentHeight }}>

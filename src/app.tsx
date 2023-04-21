@@ -6,6 +6,8 @@ import Home from './pages/home';
 import Setting from './pages/setting';
 import About from './pages/about';
 
+import './style.css';
+
 // const testValue = find([1, 2], (v) => v > 1);
 // console.log('testValue', testValue);
 
@@ -14,7 +16,7 @@ const App = () => {
     <div>
       <Router>
         <Routes>
-          <Route path="/" element={<Setting />} />
+          <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
         </Routes>
       </Router>

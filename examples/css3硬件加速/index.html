@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <style>
+      body {
+        margin-left: 200px;
+      }
+
+      #box {
+        width: 60px;
+        height: 40px;
+        border-radius: 5px;
+        background: black;
+      }
+      @keyframes move_animation {
+        0% {
+          transform: translate(0, 0);
+        }
+        25% {
+          transform: translate(200px, 0);
+        }
+        50% {
+          transform: translate(200px, 200px);
+        }
+        75% {
+          transform: translate(0, 200px);
+        }
+        100% {
+          transform: translate(0, 0);
+        }
+      }
+      @keyframes position_animation {
+        0% {
+          top: 0;
+          left: 0;
+        }
+        25% {
+          top: 0;
+          left: 200px;
+        }
+        50% {
+          top: 200px;
+          left: 200px;
+        }
+        75% {
+          top: 200px;
+          left: 0;
+        }
+        100% {
+          top: 0;
+          left: 0;
+        }
+      }
+      .css-div {
+        animation: move_animation 4s infinite;
+      }
+      .ps-div {
+        position: absolute;
+        animation: position_animation 4s infinite;
+      }
+      .box-wrapper {
+        position: relative;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      function before() {
+        const box = document.getElementById('box');
+        box.className = 'ps-div';
+      }
+      function after() {
+        const box = document.getElementById('box');
+        box.className = 'css-div';
+      }
+    </script>
+    <button onclick="before()">优化前</button>
+    <button onclick="after()">优化后</button>
+
+    <div class="box-wrapper"><div id="box" class="ps-div"></div></div>
+  </body>
+</html>

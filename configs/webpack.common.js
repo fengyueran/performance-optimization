@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 const PATHS = require('./paths');
 
@@ -10,7 +11,7 @@ const imageInlineSizeLimit = parseInt(
 
 module.exports = {
   /* 入口文件 */
-  entry: './src/index.js',
+  entry: './src/index.jsx',
 
   /* 出口文件 */
   output: {
@@ -26,6 +27,18 @@ module.exports = {
         test: /\.(js|mjs|jsx|ts|tsx)$/,
         exclude: /node_modules/,
         use: { loader: 'babel-loader' },
+      },
+      {
+        test: [/\.css$/],
+        use: [
+          {
+            loader:
+              process.env.NODE_ENV === 'production'
+                ? MiniCssExtractPlugin.loader
+                : 'style-loader',
+          },
+          { loader: 'css-loader' },
+        ],
       },
       {
         test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
@@ -45,9 +58,9 @@ module.exports = {
       filename: path.resolve(PATHS.dist, 'index.html'),
       hash: true,
       minify: {
-        // removeAttributeQuotes: true, // 去除多余引号
-        // collapseWhitespace: true, // 移除空格
-        // removeComments: true, // 移除注释
+        removeAttributeQuotes: true, // 去除多余引号
+        collapseWhitespace: true, // 移除空格
+        removeComments: true, // 移除注释
       },
       loading: {
         html: null,

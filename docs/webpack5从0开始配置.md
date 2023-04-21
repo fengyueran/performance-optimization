@@ -213,6 +213,22 @@ module.exports = {
 
 在这里需要注意的是：module.rules 允许你在 webpack 配置中指定多个 loader。还有 loader 的执行顺序需要注意一下，他是从下到上依次执行的，配置过程中不要写错了。在上面的示例中，从 sass-loader 开始执行，然后继续执行 css-loader，最后以 style-loader 为结束。
 
+- css-loader
+
+  ss-loader 会对 @import 和 url() 进行处理，就像 js 解析 import/require() 一样，默认生成一个数组存放存放处理后的样式字符串，并将其导出。
+
+- style-loader
+
+  style-loader 的功能就是在在 DOM 里插入一个 `<style>` 标签，并且将 CSS 写入这个标签内。
+  style-loader 就是处理 css-loader 导出的模块数组。
+
+  ```js
+  const style = document.createElement('style'); // 新建一个 style 标签
+  style.type = 'text/css';
+  style.appendChild(document.createTextNode(content)); // CSS 写入 style 标签
+  document.head.appendChild(style); // style 标签插入 head 中
+  ```
+
 - babel-loader
 
   babel-loader 可以转换代码，比如将 es6 代码转换为浏览器普遍支持的更低版本的代码，或者转换 jsx 语法等。
